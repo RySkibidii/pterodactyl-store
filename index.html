@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toko Hosting Pterodactyl</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* CSS Anda di sini */
+    </style>
+</head>
+<body>
+    <!-- Konten HTML Anda di sini -->
+
+    <!-- Modal dan elemen lainnya -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <!-- Konten modal -->
+        </div>
+    </div>
+
+    <!-- Tempatkan kode JavaScript di sini -->
+    <script>
+        // Variabel global
+        let paketTerpilih = '';
+        let hargaTerpilih = 0;
+        let idPesanan = '';
+        let intervalPembayaran;
+        
+        // Format mata uang Rupiah
+        function formatRupiah(jumlah) {
+            return new Intl.NumberFormat('id-ID', { 
+                style: 'currency', 
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(jumlah);
+        }
+        
+        // Pilih paket hosting
+        function pilihPaket(paket, harga) {
+            paketTerpilih = paket;
+            hargaTerpilih = harga;
+            idPesanan = 'PTR-' + Math.floor(100000 + Math.random() * 900000);
+            
+            // Update informasi di modal
+            document.getElementById('planName').textContent = paket;
+            document.getElementById('paymentAmount').textContent = formatRupiah(harga);
+            document.getElementById('successAmount').textContent = formatRupiah(harga);
+            document.getElementById('summaryPlan').textContent = paket;
+            document.getElementById('summaryAmount').textContent = formatRupiah(harga);
+            document.getElementById('summaryTotal').textContent = formatRupiah(harga);
+            document.getElementById('orderId').textContent = idPesanan;
+            
+            // Reset tampilan modal
+            document.getElementById('step1').style.display = 'block';
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('step3').style.display = 'none';
+            document.getElementById('paymentProgress').style.width = '0%';
+            document.getElementById('progressText').textContent = '0%';
+            document.getElementById('userEmail').value = '';
+            
+            // Tampilkan modal
+            document.getElementById('paymentModal').style.display = 'block';
+        }
+        
+        // Tutup modal
+        function tutupModal() {
+            document.getElementById('paymentModal').style.display = 'none';
+            clearInterval(intervalPembayaran);
+        }
+        
+        // Simulasi pembayaran QRIS
+        function simulasikanPembayaran() {
+            let progres = 0;
+            document.getElementById('paymentProgress').style.width = '0%';
+            document.getElementById('progressText').textContent = '0%';
+            
+            // Nonaktifkan tombol selama pembayaran
+            const tombolBayar = document.querySelector('#step1 button');
+            tombolBayar.disabled = true;
+            tombolBayar.textContent = 'Memproses Pembayaran...';
+            
+            // Simulasi progres pembayaran
+            intervalPembayaran = setInterval(() => {
+                progres += Math.floor(Math.random() * 10) + 5;
+                if (progres > 100) progres = 100;
+                
+                document.getElementById('paymentProgress').style.width = progres + '%';
+                document.getElementById('progressText').textContent = progres + '%';
+                
+                if (progres === 100) {
+                    clearInterval(intervalPembayaran);
+                    selesaikanPembayaran();
+                }
+            }, 500);
+        }
+        
+        // Proses setelah pembayaran selesai
+        function selesaikanPembayaran() {
+            // Tampilkan pesan sukses
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'block';
+            
+            // Aktifkan kembali tombol
+            const tombolBayar = document.querySelector('#step1 button');
+            tombolBayar.disabled = false;
+            tombolBayar.textContent = 'Simulasikan Pembayaran (untuk demo)';
+            
+            // Simulasi verifikasi otomatis
+            verifikasiPembayaran(idPesanan);
+        }
+        
+        // Simulasi verifikasi pembayaran
+        function verifikasiPembayaran(orderId) {
+            console.log(`Memverifikasi pembayaran untuk pesanan: ${orderId}`);
+            // Di implementasi nyata, ini akan memanggil API untuk verifikasi pembayaran
+            
+            const dataPembayaran = {
+                orderId: orderId,
+                status: 'berhasil',
+                waktu: new Date().toISOString(),
+                metode: 'QRIS',
+                referensi: 'QRIS-' + Math.floor(1000000 + Math.random() * 9000000)
+            };
+            
+            console.log('Data pembayaran:', dataPembayaran);
+        }
+        
+        // Kirim kredensial ke email
+        function kirimKredensial() {
+            const email = document.getElementById('userEmail').value;
+            
+            // Validasi email
+            if (!email || !email.includes('@') || !email.includes('.')) {
+                alert('Harap masukkan alamat email yang valid');
+                return;
+            }
+            
+            // Update tampilan
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('step3').style.display = 'block';
+            document.getElementById('sentEmail').textContent = email;
+            
+            // Simulasi pengiriman email
+            kirimEmailKredensial(email);
+            
+            // Simulasi pengiriman struk ke bot Telegram
+            kirimStrukTelegram(email);
+        }
+        
+        // Simulasi pengiriman email
+        function kirimEmailKredensial(email) {
+            console.log(`Mengirim kredensial panel ke: ${email}`);
+            // Di implementasi nyata, ini akan memanggil API untuk mengirim email
+            
+            // Generate kredensial acak
+            const kredensial = {
+                username: 'ptero_' + Math.random().toString(36).substring(2, 8),
+                password: Math.random().toString(36).substring(2, 12),
+                urlPanel: 'https://panel.pterodactyl-store.com',
+                serverId: 'sv-' + Math.floor(1000 + Math.random() * 9000),
+                tanggalAktif: new Date().toLocaleDateString('id-ID'),
+                tanggalKadaluarsa: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('id-ID')
+            };
+            
+            console.log('Kredensial yang dikirim:', kredensial);
+            
+            // Contoh isi email yang akan dikirim
+            const isiEmail = `
+Subjek: Kredensial Panel Pterodactyl Anda
+
+Halo,
+
+Terima kasih telah membeli paket ${paketTerpilih} di Toko Hosting Pterodactyl kami.
+
+Berikut detail akun panel Anda:
+
+URL Panel: ${kredensial.urlPanel}
+Username: ${kredensial.username}
+Password: ${kredensial.password}
+Server ID: ${kredensial.serverId}
+
+Masa aktif: ${kredensial.tanggalAktif} - ${kredensial.tanggalKadaluarsa}
+
+Harap simpan email ini dengan aman. Jangan bagikan kredensial Anda kepada siapapun.
+
+Salam,
+Tim Pterodactyl Hosting
+`;
+            console.log('Isi email:', isiEmail);
+        }
+        
+        // Simulasi pengiriman ke bot Telegram
+        function kirimStrukTelegram(email) {
+            console.log(`Mengirim struk ke bot Telegram untuk pesanan: ${idPesanan}`);
+            // Di implementasi nyata, ini akan memanggil API Telegram Bot
+            
+            const dataStruk = {
+                orderId: idPesanan,
+                paket: paketTerpilih,
+                harga: hargaTerpilih,
+                email: email,
+                tanggal: new Date().toLocaleString('id-ID'),
+                status: 'lunas'
+            };
+            
+            console.log('Data struk:', dataStruk);
+            
+            // Format pesan untuk Telegram
+            const pesanTelegram = `
+📄 *Struk Pembelian Hosting Pterodactyl* 📄
+
+*ID Pesanan:* ${dataStruk.orderId}
+*Paket:* ${dataStruk.paket}
+*Harga:* ${formatRupiah(dataStruk.harga)}
+*Email:* ${dataStruk.email}
+*Tanggal:* ${dataStruk.tanggal}
+*Status:* ✅ Lunas
+
+Terima kasih telah berbelanja di toko kami! Kredensial panel telah dikirim ke email Anda.
+`;
+            
+            console.log('Pesan Telegram:', pesanTelegram);
+        }
+        
+        // Tutup modal saat klik di luar
+        window.onclick = function(event) {
+            const modal = document.getElementById('paymentModal');
+            if (event.target === modal) {
+                tutupModal();
+            }
+        }
+    </script>
+</body>
+</html>
